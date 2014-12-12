@@ -1,0 +1,21 @@
+-main ApplicationMain 
+-cp C:/HaxeToolkit/haxe/lib/lime/2,0,0-alpha,8
+-D lime=2.0.0-alpha.8
+-cp C:/HaxeToolkit/haxe/lib/shaderblox/git
+-D shaderblox=1.0.0
+-cp C:/HaxeToolkit/haxe/lib/gltoolbox/git
+-D gltoolbox=0.0.1
+-cp Source
+-D lime-openal
+-D tools=1.7.1
+-D no-compilation
+-D lime-opengl
+-D lime-html5
+-D lime-curl
+-D html5
+-D web
+-js Export/html5/bin/GLFluid.js
+-cp Export/html5/haxe
+-D html5
+-D html
+-debug

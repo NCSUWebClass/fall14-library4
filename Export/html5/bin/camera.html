@@ -1,0 +1,78 @@
+<html>
+    <body>
+        <script type='application/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
+        <script src="//mtschirs.github.io/js-objectdetect/examples/js/compatibility.js"></script>
+        <script src="/js/objectdetect.js"></script>
+        <script src="/js/objectdetect.frontalface.js"></script>
+        <script src="/js/objectdetect.handopen.js"></script>
+        <script src="/js/jquery.objectdetect.js"></script>
+        <script src="/js/sync.js"></script>
+        <script>
+            $(function(){
+                var canvas = $('<canvas style="position: fixed; z-index: 1001;top: 10px; right: 10px; opacity: 0.9">').get(0),
+                context = canvas.getContext('2d'),
+                video = document.createElement('video'),
+                fist_pos_old;
+
+                document.getElementsByTagName('body')[0].appendChild(canvas);
+
+                try {
+                    compatibility.getUserMedia({video: true}, function(stream) {
+                        try {
+                            video.src = compatibility.URL.createObjectURL(stream);
+                        } catch (error) {
+                            video.src = stream;
+                        }
+                        compatibility.requestAnimationFrame(play);
+                    }, function (error) {
+                        alert("WebRTC not available");
+                    });
+                } catch (error) {
+                    alert(error);
+                }
+
+                function play() {
+                    compatibility.requestAnimationFrame(play);
+                    if (video.paused) video.play();
+
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+
+                        /* Draw video overlay */
+                        canvas.width = ~~(100 * video.videoWidth / video.videoHeight);
+                        canvas.height = 100;
+                        context.drawImage(video, 0, 0, canvas.clientWidth, canvas.clientHeight);
+
+                        $(video).objectdetect("all", {size: 300, scaleMin: 3, scaleFactor: 1.1, classifier: objectdetect.frontalface}, function(coords) {
+                            if (coords.length > 0) {
+                                var coord = coords[0];
+                                var type = "mousemove";
+                                if (fist_pos_old == null) {
+                                    type = "mousedown";
+                                }
+                                console.log((coord[0] + coord[2] / 2) + " " + (coord[1] + coord[3] / 2));
+                                sendws(type, (coord[0] + coord[2] / 2) / 640, (coord[1] + coord[3] / 2) / 480);
+                                fist_pos_old = [coord[0] + coord[2] / 2, coord[1] + coord[3] / 2];
+                            
+                                console.log(coords[0]);
+
+                                /* Draw coordinates on video overlay: */
+                                context.beginPath();
+                                context.lineWidth = '2';
+                                context.fillStyle = 'rgba(0, 255, 255, 0.5)';
+                                context.fillRect(
+                                coord[0] / video.videoWidth * canvas.clientWidth,
+                                coord[1] / video.videoHeight * canvas.clientHeight,
+                                coord[2] / video.videoWidth * canvas.clientWidth,
+                                coord[3] / video.videoHeight * canvas.clientHeight);
+                                context.stroke();
+                            } else {
+                                fist_pos_old = null;
+                                sendws("mouseup", 0, 0);
+                            }
+                        });
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
